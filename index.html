@@ -1,0 +1,561 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Zakat Lengkap + Panduan</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f4f7f6;
+            color: #333;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 700px;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        h2 {
+            text-align: center;
+            color: #2e7d32;
+            margin-bottom: 20px;
+        }
+
+        .tabs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 5px;
+        }
+
+        @media (max-width: 550px) {
+            .tabs {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .tab-btn {
+            padding: 10px 5px;
+            background: #f0f4f1;
+            border: none;
+            font-size: 13px;
+            font-weight: 600;
+            color: #757575;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            color: #ffffff;
+            background-color: #2e7d32;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            background-color: #fff;
+            transition: border 0.3s;
+        }
+
+        input:focus, select:focus {
+            border-color: #2e7d32;
+        }
+
+        input:read-only {
+            background-color: #f9f9f9;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        .info-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        .result-box {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e8f5e9;
+            border-left: 5px solid #2e7d32;
+            border-radius: 4px;
+        }
+
+        .result-box h3 {
+            font-size: 14px;
+            color: #1b5e20;
+            margin-bottom: 5px;
+        }
+
+        .result-amount {
+            font-size: 22px;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        .status-wajib { background-color: #c8e6c9; color: #256029; }
+        .status-bebas { background-color: #ffcc80; color: #b75700; }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .global-param {
+            background: #fff8e1;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #ffe082;
+        }
+
+        /* Notifikasi Sinkronisasi */
+        #syncStatus {
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 8px;
+            border-radius: 6px;
+        }
+        .sync-loading { background: #e3f2fd; color: #0d47a1; border: 1px solid #90caf9; }
+        .sync-success { background: #e8f5e9; color: #1b5e20; border: 1px solid #a5d6a7; }
+        .sync-failed { background: #ffebee; color: #b71c1c; border: 1px solid #ef9a9a; }
+
+        .panduan-container {
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 10px;
+            border: 1px solid #e0e0e0;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+
+        .panduan-section {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed #ccc;
+        }
+
+        .panduan-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .panduan-title {
+            font-size: 16px;
+            color: #2e7d32;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .panduan-card {
+            background-color: #ffffff;
+            border-left: 4px solid #f57c00;
+            padding: 10px 15px;
+            margin: 10px 0;
+            font-size: 13.5px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .panduan-card strong {
+            color: #e65100;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Kalkulator Zakat</h2>
+
+    <div id="syncStatus" class="sync-loading">🔄 Menghubungkan Ke Data Base ...</div>
+
+    <div class="global-param">
+        <p style="font-size: 11px; font-weight: bold; color: #b76e00; margin-bottom: 6px;">🔒 PARAMETER HARGA UTAMA (DIKUNCI ADMIN):</p>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 120px;">
+                <label style="font-size: 12px; color: #555;">Harga Emas / Gram (Rp)</label>
+                <input type="number" id="globalHargaEmas" value="1400000" readonly style="padding: 8px; font-size: 14px;">
+            </div>
+            <div style="flex: 1; min-width: 120px;">
+                <label style="font-size: 12px; color: #555;">Harga Beras / Kg (Rp)</label>
+                <input type="number" id="globalHargaBeras" value="15000" readonly style="padding: 8px; font-size: 14px;">
+            </div>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(event, 'panduan')">Panduan</button>
+        <button class="tab-btn" onclick="switchTab(event, 'fitrah')">Zakat Fitrah</button>
+        <button class="tab-btn" onclick="switchTab(event, 'maal')">Penghasilan</button>
+        <button class="tab-btn" onclick="switchTab(event, 'emas')">Emas</button>
+        <button class="tab-btn" onclick="switchTab(event, 'dagang')">Perdagangan</button>
+        <button class="tab-btn" onclick="switchTab(event, 'kebun')">Perkebunan</button>
+    </div>
+
+    <div id="fitrah" class="tab-content">
+        <div class="form-group">
+            <label for="jumlahJiwa">Jumlah Jiwa (Orang)</label>
+            <input type="number" id="jumlahJiwa" min="0" placeholder="Contoh: 4" oninput="hitungFitrah()">
+        </div>
+        <div class="result-box">
+            <h3>Total Zakat Fitrah (Beras):</h3>
+            <div class="result-amount" id="totalBeras">0 kg</div>
+            <hr style="margin: 10px 0; border: 0; border-top: 1px solid #c8e6c9;">
+            <h3>Jika Ditunaikan Uang:</h3>
+            <div class="result-amount" id="totalUangFitrah">Rp 0</div>
+        </div>
+    </div>
+
+    <div id="maal" class="tab-content">
+        <div class="form-group">
+            <label for="penghasilan">Penghasilan Bulanan (Gaji + Sampingan)</label>
+            <input type="number" id="penghasilan" placeholder="Masukkan total pendapatan" oninput="hitungMaal()">
+        </div>
+        <div class="result-box">
+            <h3>Status Kewajiban:</h3>
+            <div id="statusMaal" class="status-badge status-bebas">Belum Wajib Zakat</div>
+            <div id="detailNishabMaal" class="info-text" style="margin-bottom: 10px;"></div>
+            <h3>Zakat Penghasilan (2,5%):</h3>
+            <div class="result-amount" id="totalMaal">Rp 0</div>
+        </div>
+    </div>
+
+    <div id="emas" class="tab-content">
+        <div class="form-group">
+            <label for="beratEmas">Total Berat Emas yang Disimpan (Gram)</label>
+            <input type="number" id="beratEmas" placeholder="Contoh: 90" oninput="hitungEmas()">
+        </div>
+        <div class="result-box">
+            <h3>Status Kewajiban:</h3>
+            <div id="statusEmas" class="status-badge status-bebas">Belum Wajib Zakat</div>
+            <div class="info-text" style="margin-bottom: 10px;">*Nishab Emas Simpanan: 85 gram</div>
+            <h3>Zakat Emas Simpanan (2,5%):</h3>
+            <div class="result-amount" id="totalEmas">Rp 0</div>
+        </div>
+    </div>
+
+    <div id="dagang" class="tab-content">
+        <div class="form-group">
+            <label for="modalDagang">Modal Diputar / Barang Dagangan (Rp)</label>
+            <input type="number" id="modalDagang" placeholder="Nilai barang dagangan" oninput="hitungDagang()">
+        </div>
+        <div class="form-group">
+            <label for="kasDagang">Uang Kas Dagang / Piutang Lancar (Rp)</label>
+            <input type="number" id="kasDagang" placeholder="Uang di rekening toko + piutang" oninput="hitungDagang()">
+        </div>
+        <div class="form-group">
+            <label for="utangDagang">Utang Jatuh Tempo Bisnis (Rp)</label>
+            <input type="number" id="utangDagang" placeholder="Utang operasional yang harus dibayar" oninput="hitungDagang()">
+        </div>
+        <div class="result-box">
+            <h3>Status Kewajiban:</h3>
+            <div id="statusDagang" class="status-badge status-bebas">Belum Wajib Zakat</div>
+            <div id="detailNishabDagang" class="info-text" style="margin-bottom: 10px;"></div>
+            <h3>Zakat Perdagangan (2,5%):</h3>
+            <div class="result-amount" id="totalDagang">Rp 0</div>
+        </div>
+    </div>
+
+    <div id="kebun" class="tab-content">
+        <div class="form-group">
+            <label for="totalPanen">Total Pendapatan Kotor Hasil Panen (Rp)</label>
+            <input type="number" id="totalPanen" placeholder="Contoh: Nilai penjualan TBS Sawit / Karet" oninput="hitungKebun()">
+        </div>
+        <div class="form-group">
+            <label for="biayaKebun">Biaya Operasional (Pupuk, Panen, Perawatan) (Rp)</label>
+            <input type="number" id="biayaKebun" placeholder="Total pengeluaran untuk panen ini" oninput="hitungKebun()">
+        </div>
+        <div class="form-group">
+            <label for="jenisPengairan">Metode Perawatan & Pembiayaan</label>
+            <select id="jenisPengairan" onchange="hitungKebun()">
+                <option value="0.05">Menggunakan Biaya Operasional / Pupuk (Zakat 5%)</option>
+                <option value="0.10">Tadah Hujan / Alami Tanpa Biaya Berarti (Zakat 10%)</option>
+            </select>
+            <p class="info-text">*Zakat dikeluarkan setiap kali panen jika hasil kotornya mencapai nishab.</p>
+        </div>
+        <div class="result-box">
+            <h3>Status Kewajiban Panen:</h3>
+            <div id="statusKebun" class="status-badge status-bebas">Belum Wajib Zakat</div>
+            <div id="detailNishabKebun" class="info-text" style="margin-bottom: 10px;"></div>
+            <h3>Zakat Perkebunan yang Harus Dikeluarkan:</h3>
+            <div class="result-amount" id="totalKebun">Rp 0</div>
+        </div>
+    </div>
+
+    <div id="panduan" class="tab-content active">
+        <div class="panduan-container">
+            
+            <div class="panduan-section" style="background-color: #fffde7; padding: 10px; border-radius: 6px; border: 1px solid #ffe082; margin-bottom: 15px;">
+                <p style="font-size: 13px; font-weight: bold; color: #b76e00; margin-bottom: 4px;">📌 Petunjuk Pengaturan Utama (Parameter Global):</p>
+                <p style="font-size: 12.5px; color: #555;">Sebelum menghitung, harap isi terlebih dahulu nilai <strong>Harga Emas</strong> dan <strong>Harga Beras</strong> terkini pada kotak kuning di bagian paling atas aplikasi agar nilai ambang batas minimum (Nishab) terhitung secara akurat.</p>
+            </div>
+
+            <!-- Panduan Fitrah -->
+            <div class="panduan-section">
+                <div class="panduan-title">1. Zakat Fitrah</div>
+                <p style="font-size: 13.5px; color: #444;">Zakat jiwa yang dibayarkan pada bulan Ramadhan. Ketentuannya adalah berupa makanan pokok seberat 2,5 kg atau 3,5 liter beras per jiwa.</p>
+                <ul class="panduan-list">
+                    <li>Buka tab <strong>Zakat Fitrah</strong>, lalu masukkan jumlah orang pada kolom input.</li>
+                </ul>
+                <div class="panduan-card">
+                    <strong>Contoh Kasus:</strong> Jumlah Jiwa = 5 Orang, Harga Beras = Rp15.000.<br>
+                    <strong>Hasil:</strong> Total beras terhitung 12,5 kg atau senilai <strong>Rp 187.500</strong>.
+                </div>
+            </div>
+
+            <!-- Panduan Penghasilan -->
+            <div class="panduan-section">
+                <div class="panduan-title">2. Zakat Penghasilan</div>
+                <p style="font-size: 13.5px; color: #444;">Dikeluarkan dari pendapatan kotor bulanan (gaji tetap/kerja sampingan). Batas nishab bulanan setara dengan (85 gram emas ÷ 12 bulan) dengan tarif zakat 2,5%.</p>
+                <ul class="panduan-list">
+                    <li>Masukkan total upah bulanan Anda pada kolom yang disediakan.</li>
+                </ul>
+                <div class="panduan-card">
+                    <strong>Contoh Kasus:</strong> Gaji = Rp12.000.000, Batas nishab bulanan (asumsi emas Rp1,4jt/g) adalah Rp9.916.667.<br>
+                    <strong>Hasil:</strong> Status <strong>Wajib Zakat</strong>, beban bayar = <strong>Rp 300.000</strong>.
+                </div>
+            </div>
+
+            <!-- Panduan Emas -->
+            <div class="panduan-section">
+                <div class="panduan-title">3. Zakat Emas Simpanan</div>
+                <p style="font-size: 13.5px; color: #444;">Wajib untuk emas investasi/tabungan yang sudah mengendap selama 1 tahun (haul) dan beratnya mencapai atau melebihi 85 gram. Tarifnya sebesar 2,5%.</p>
+                <ul class="panduan-list">
+                    <li>Cukup ketik total berat emas dalam satuan gram.</li>
+                </ul>
+                <div class="panduan-card">
+                    <strong>Contoh Kasus:</strong> Berat Emas = 90 gram, Harga Emas = Rp1.400.000.<br>
+                    <strong>Hasil:</strong> Status <strong>Wajib Zakat</strong> (karena ≥ 85g), besar zakat = <strong>Rp 3.150.000</strong>.
+                </div>
+            </div>
+
+            <!-- Panduan Perdagangan -->
+            <div class="panduan-section">
+                <div class="panduan-title">4. Zakat Perdagangan</div>
+                <p style="font-size: 13.5px; color: #444;">Dihitung setahun sekali dari total aset lancar usaha dikurangi utang jangka pendek operasional. Nishabnya setara 85 gram emas (Tarif 2,5%).</p>
+                <ul class="panduan-list">
+                    <li>Isikan nilai barang dagangan, uang di kas/bank bisnis, lalu kurangi dengan utang dagang jatuh tempo.</li>
+                </ul>
+                <div class="panduan-card">
+                    <strong>Contoh Kasus:</strong> Stok Barang = Rp150jt, Uang Kas = Rp30jt, Utang Bisnis = Rp10jt. Harta bersih = Rp170.000.000.<br>
+                    <strong>Hasil:</strong> Status <strong>Wajib Zakat</strong> (Melampaui nishab emas), besar beban = <strong>Rp 4.250.000</strong>.
+                </div>
+            </div>
+
+            <!-- Panduan Perkebunan -->
+            <div class="panduan-section">
+                <div class="panduan-title">5. Zakat Perkebunan (Sawit / Karet)</div>
+                <p style="font-size: 13.5px; color: #444;">Dikeluarkan setiap kali panen komoditas (seperti sawit/karet) bila hasil kotornya mencapai nishab setara 520 kg beras. Tarif 5% jika ada biaya operasional pemeliharaan rutin, atau 10% jika tumbuh alami.</p>
+                <ul class="panduan-list">
+                    <li>Isi pendapatan kotor panen, nilai total pengeluaran operasional panen, lalu pilih tarif perawatan yang sesuai di dropdown.</li>
+                </ul>
+                <div class="panduan-card">
+                    <strong>Contoh Kasus:</strong> Omzet Kotor = Rp15jt, Operasional/Pupuk = Rp4jt, Tarif = 5%. Batas nishab panen (520kg × Rp15.000) adalah Rp7.800.000.<br>
+                    <strong>Hasil:</strong> Status <strong>Wajib Zakat</strong> (karena omzet ≥ nishab). Nilai zakat diambil dari hasil bersih (Rp11jt × 5%) = <strong>Rp 550.000</strong>.
+                </div>
+            </div>
+
+        </div>
+</div>
+
+<script>
+    // --- ID SPREADSHEET ANDA (Pastikan nama Tab lembar kerja adalah "Sheet1") ---
+    const SPREADSHEET_ID = "1fm-0yT1HxEQn2u3dKvF7fExJyiPUwNYhWr3l9qBvb40";
+
+    async function ambilDataDariSheets() {
+        const statusBox = document.getElementById('syncStatus');
+        const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv`;
+
+        try {
+            // Pasang pembatas otomatis (Timeout 6 detik) biar gak stuck selamanya jika internet down
+            const controller = new AbortController();
+            const idTimeout = setTimeout(() => controller.abort(), 6000);
+
+            const respon = await fetch(url, { signal: controller.signal });
+            clearTimeout(idTimeout);
+
+            if (!respon.ok) throw new Error("Akses ditolak.");
+            
+            const dataTeks = await respon.text();
+            const baris = dataTeks.split(/\r?\n/);
+            if (baris.length < 3) throw new Error("Data kurang.");
+
+            // Menguraikan string CSV secara ketat menggunakan pencarian Regex tanda kutip
+            const matchEmas = baris[1].match(/"([^"]+)"/g);
+            const matchBeras = baris[2].match(/"([^"]+)"/g);
+
+            if (!matchEmas || !matchBeras) throw new Error("Format kolom salah.");
+
+            // Ambil kolom B (indeks 1), hilangkan sisa kutip dan karakter selain angka
+            const teksEmas = matchEmas[1].replace(/"/g, "").replace(/[^0-9.-]+/g,"");
+            const teksBeras = matchBeras[1].replace(/"/g, "").replace(/[^0-9.-]+/g,"");
+
+            const hargaEmasClean = parseFloat(teksEmas);
+            const hargaBerasClean = parseFloat(teksBeras);
+
+            if (!isNaN(hargaEmasClean) && !isNaN(hargaBerasClean)) {
+                document.getElementById('globalHargaEmas').value = hargaEmasClean;
+                document.getElementById('globalHargaBeras').value = hargaBerasClean;
+                
+                statusBox.innerText = "✅ Koneksi Sukses! Parameter terhubung ke Data Base.";
+                statusBox.className = "sync-status sync-success";
+                
+                hitungSemua();
+            } else {
+                throw new Error("Bukan angka.");
+            }
+
+        } catch (error) {
+            console.error(error);
+            // Gagal/Timeout langsung dialihkan menggunakan harga default lokal (Aplikasi tetap jalan aman)
+            statusBox.innerText = "❌ Gagal sinkronisasi ke Data Base.Periksa Koneksi,atau menggunakan harga standar lokal.";
+            statusBox.className = "sync-status sync-failed";
+            
+            hitungSemua();
+        }
+    }
+
+    window.onload = function() {
+        ambilDataDariSheets();
+    };
+
+    function switchTab(event, tabName) {
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(tabName).classList.add('active');
+        if(event && event.currentTarget) event.currentTarget.classList.add('active');
+    }
+
+    function formatRupiah(angka) {
+        return "Rp " + Math.round(angka).toLocaleString('id-ID');
+    }
+
+    function hitungSemua() {
+        hitungFitrah(); hitungMaal(); hitungEmas(); hitungDagang(); hitungKebun();
+    }
+
+    function hitungFitrah() {
+        const jumlahJiwa = parseFloat(document.getElementById('jumlahJiwa').value) || 0;
+        const hargaBeras = parseFloat(document.getElementById('globalHargaBeras').value) || 0;
+        const totalBeras = jumlahJiwa * 2.5;
+        document.getElementById('totalBeras').innerText = totalBeras.toLocaleString('id-ID') + " kg";
+        document.getElementById('totalUangFitrah').innerText = formatRupiah(totalBeras * hargaBeras);
+    }
+
+    function hitungMaal() {
+        const penghasilan = parseFloat(document.getElementById('penghasilan').value) || 0;
+        const hargaEmas = parseFloat(document.getElementById('globalHargaEmas').value) || 0;
+        const nishabBulanan = (85 * hargaEmas) / 12;
+        document.getElementById('detailNishabMaal').innerText = "*Nishab bulan ini: " + formatRupiah(nishabBulanan);
+        const statusBadge = document.getElementById('statusMaal');
+        if (penghasilan >= nishabBulanan) {
+            statusBadge.innerText = "Wajib Zakat"; statusBadge.className = "status-badge status-wajib";
+            document.getElementById('totalMaal').innerText = formatRupiah(penghasilan * 0.025);
+        } else {
+            statusBadge.innerText = "Belum Wajib Zakat"; statusBadge.className = "status-badge status-bebas";
+            document.getElementById('totalMaal').innerText = formatRupiah(0);
+        }
+    }
+
+    function hitungEmas() {
+        const beratEmas = parseFloat(document.getElementById('beratEmas').value) || 0;
+        const hargaEmas = parseFloat(document.getElementById('globalHargaEmas').value) || 0;
+        const statusBadge = document.getElementById('statusEmas');
+        if (beratEmas >= 85) {
+            statusBadge.innerText = "Wajib Zakat"; statusBadge.className = "status-badge status-wajib";
+            document.getElementById('totalEmas').innerText = formatRupiah((beratEmas * hargaEmas) * 0.025);
+        } else {
+            statusBadge.innerText = "Belum Wajib Zakat"; statusBadge.className = "status-badge status-bebas";
+            document.getElementById('totalEmas').innerText = formatRupiah(0);
+        }
+    }
+
+    function hitungDagang() {
+        const modal = parseFloat(document.getElementById('modalDagang').value) || 0;
+        const kas = parseFloat(document.getElementById('kasDagang').value) || 0;
+        const utang = parseFloat(document.getElementById('utangDagang').value) || 0;
+        const hargaEmas = parseFloat(document.getElementById('globalHargaEmas').value) || 0;
+        const asetBersih = (modal + kas) - utang;
+        const nishabDagang = 85 * hargaEmas;
+        document.getElementById('detailNishabDagang').innerText = "*Nishab Perdagangan: " + formatRupiah(nishabDagang);
+        const statusBadge = document.getElementById('statusDagang');
+        if (asetBersih >= nishabDagang) {
+            statusBadge.innerText = "Wajib Zakat"; statusBadge.className = "status-badge status-wajib";
+            document.getElementById('totalDagang').innerText = formatRupiah(asetBersih * 0.025);
+        } else {
+            statusBadge.innerText = "Belum Wajib Zakat"; statusBadge.className = "status-badge status-bebas";
+            document.getElementById('totalDagang').innerText = formatRupiah(0);
+        }
+    }
+
+    function hitungKebun() {
+        const totalPanen = parseFloat(document.getElementById('totalPanen').value) || 0;
+        const biayaKebun = parseFloat(document.getElementById('biayaKebun').value) || 0;
+        const tarifZakat = parseFloat(document.getElementById('jenisPengairan').value);
+        const hargaBeras = parseFloat(document.getElementById('globalHargaBeras').value) || 0;
+        const nishabKebunUang = 520 * hargaBeras;
+        document.getElementById('detailNishabKebun').innerText = "*Nishab per Panen (520kg Beras): " + formatRupiah(nishabKebunUang);
+        const statusBadge = document.getElementById('statusKebun');
+        if (totalPanen >= nishabKebunUang) {
+            statusBadge.innerText = "Wajib Zakat"; statusBadge.className = "status-badge status-wajib";
+            const bersih = totalPanen - biayaKebun;
+            const zakat = bersih > 0 ? bersih * tarifZakat : 0;
+            document.getElementById('totalKebun').innerText = formatRupiah(zakat);
+        } else {
+            statusBadge.innerText = "Belum Wajib Zakat"; statusBadge.className = "status-badge status-bebas";
+            document.getElementById('totalKebun').innerText = formatRupiah(0);
+        }
+    }
+</script>
+</body>
+</html>
+
